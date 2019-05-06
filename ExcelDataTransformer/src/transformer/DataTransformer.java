@@ -167,7 +167,13 @@ public class DataTransformer {
 
 			for (int i = 0; i <= lastRow; i++) {
 				Row inRow = inSheet.getRow(i);
+				if (inRow == null) {
+					continue;
+				}
 				Cell inCell = inRow.getCell(columnNumber);
+				if (inCell == null) {
+					continue;
+				}
 				String text = getCellValue(inCell);
 
 				if (text == null) {
@@ -183,8 +189,7 @@ public class DataTransformer {
 				outCell.setCellValue(text);
 				outColumnNumber++;
 
-				System.out.println("Row:" + outRowNumber);
-				System.out.println("Column:" + outColumnNumber);
+				System.out.println(text);
 
 				if (delimeter.equals(text)) {
 					outColumnNumber = 0;
@@ -193,7 +198,8 @@ public class DataTransformer {
 			}
 
 			File inFile = new File(excelPath);
-			String outFileName = Paths.get(System.getProperty("user.dir"), "Transformed_" + inFile.getName())
+			String outFileName = Paths
+					.get(System.getProperty("user.dir"), "Transformed_" + sheetName + "_" + inFile.getName())
 					.toString();
 			FileOutputStream fileOutStrem = new FileOutputStream(outFileName);
 			outWorkbook.write(fileOutStrem);
@@ -202,7 +208,7 @@ public class DataTransformer {
 			inWorkbook.close();
 
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			// throw new RuntimeException(e);
 		}
 	}
 
