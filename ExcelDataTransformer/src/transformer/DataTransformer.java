@@ -27,6 +27,8 @@ import org.eclipse.wb.swt.SWTResourceManager;
 public class DataTransformer {
 
 	private Shell shell;
+	private Combo sheetNameCmb;
+	private Workbook inWorkbook;
 
 	/**
 	 * Launch the application.
@@ -96,9 +98,9 @@ public class DataTransformer {
 		SheetNameLbl.setText("Sheet Name");
 		SheetNameLbl.setBounds(10, 62, 181, 27);
 
-		Text sheetNameTxt = new Text(inputGroup, SWT.BORDER);
-		sheetNameTxt.setToolTipText("Sheet Name");
-		sheetNameTxt.setBounds(200, 60, 304, 25);
+		sheetNameCmb = new Combo(inputGroup, SWT.READ_ONLY);
+		sheetNameCmb.setToolTipText("Sheet Name");
+		sheetNameCmb.setBounds(200, 60, 304, 25);
 
 		String[] items = new String[] { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", };
 		Combo columnNumberCmb = new Combo(inputGroup, SWT.READ_ONLY);
@@ -106,10 +108,6 @@ public class DataTransformer {
 		columnNumberCmb.setBounds(200, 94, 181, 23);
 		columnNumberCmb.setItems(items);
 		columnNumberCmb.select(0);
-
-		Button transformBtn = new Button(inputGroup, SWT.NONE);
-		transformBtn.setBounds(200, 161, 181, 33);
-		transformBtn.setText("Transform");
 
 		Label excelColumn = new Label(inputGroup, SWT.NONE);
 		excelColumn.setText("Column Number");
@@ -121,16 +119,44 @@ public class DataTransformer {
 
 		Text delimeterTxt = new Text(inputGroup, SWT.BORDER);
 		delimeterTxt.setBounds(200, 123, 181, 21);
+
+		Button getSheetBtn = new Button(inputGroup, SWT.NONE);
+		getSheetBtn.setText("Get Sheets");
+		getSheetBtn.setBounds(507, 59, 82, 25);
+		getSheetBtn.addListener(SWT.Selection, new Listener() {
+
+			@Override
+			public void handleEvent(Event arg0) {
+				try {
+					String excelPath = leadsExcelPathTxt.getText().trim();
+					if (!excelPath.isEmpty()) {
+						inWorkbook = new XSSFWorkbook(excelPath);
+						int noOfSheets = inWorkbook.getNumberOfSheets();
+						String[] sheets = new String[noOfSheets];
+						for (int i = 0; i < noOfSheets; i++) {
+							sheets[i] = inWorkbook.getSheetName(i);
+						}
+						sheetNameCmb.setItems(sheets);
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
+		Button transformBtn = new Button(inputGroup, SWT.NONE);
+		transformBtn.setBounds(200, 161, 181, 33);
+		transformBtn.setText("Transform");
 		transformBtn.addListener(SWT.Selection, new Listener() {
 
 			@Override
 			public void handleEvent(Event arg0) {
 				String excelPath = leadsExcelPathTxt.getText();
-				String sheetName = sheetNameTxt.getText();
+				String sheetName = sheetNameCmb.getText();
 				int columnNumber = columnNumberCmb.getSelectionIndex();
 				String delimeter = delimeterTxt.getText().trim();
 
-				if (excelPath.isEmpty() || sheetName.isEmpty()) {
+				if (excelPath.isEmpty() /* || sheetName.isEmpty() */) {
 					emptyInputWarning();
 				} else {
 					transform(excelPath, sheetName, columnNumber, delimeter);
@@ -156,7 +182,6 @@ public class DataTransformer {
 
 	public void transform(String excelPath, String sheetName, int columnNumber, String delimeter) {
 		try {
-			Workbook inWorkbook = new XSSFWorkbook(excelPath);
 			Sheet inSheet = inWorkbook.getSheet(sheetName);
 			int lastRow = inSheet.getLastRowNum();
 
